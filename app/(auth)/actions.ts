@@ -18,6 +18,16 @@ export async function registerAction(
   _prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
+  // Optional invite gate for public deployments: if SIGNUP_CODE is set, the
+  // registrant must supply the matching code. Unset (e.g. local dev) = open signup.
+  const requiredCode = process.env.SIGNUP_CODE;
+  if (requiredCode) {
+    const provided = ((formData.get("code") as string) || "").trim();
+    if (provided !== requiredCode) {
+      return { error: "Invalid or missing invite code." };
+    }
+  }
+
   const parsed = registerSchema.safeParse({
     name: (formData.get("name") as string) || undefined,
     email: formData.get("email"),

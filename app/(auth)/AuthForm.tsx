@@ -17,9 +17,10 @@ function SubmitButton({ label }: { label: string }) {
 type Props = {
   mode: "login" | "register";
   action: (prev: AuthState, formData: FormData) => Promise<AuthState>;
+  requireCode?: boolean;
 };
 
-export default function AuthForm({ mode, action }: Props) {
+export default function AuthForm({ mode, action, requireCode = false }: Props) {
   const [state, formAction] = useActionState(action, {});
   const isRegister = mode === "register";
 
@@ -40,6 +41,13 @@ export default function AuthForm({ mode, action }: Props) {
       </div>
 
       <form action={formAction} className="card space-y-4 p-6">
+        {isRegister && requireCode && (
+          <div>
+            <label className="label" htmlFor="code">Invite code</label>
+            <input id="code" name="code" type="text" required className="input" placeholder="Family invite code" />
+          </div>
+        )}
+
         {isRegister && (
           <div>
             <label className="label" htmlFor="name">

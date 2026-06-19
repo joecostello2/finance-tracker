@@ -10,6 +10,9 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // Migrations prefer a direct (non-pooled) connection when available — Neon and
+    // other serverless Postgres providers recommend running DDL over the direct URL
+    // and serving app traffic over the pooled URL (DATABASE_URL).
+    url: process.env["DIRECT_DATABASE_URL"] ?? process.env["DATABASE_URL"],
   },
 });

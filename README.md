@@ -117,6 +117,14 @@ prisma/
   seed.ts          # demo data
 ```
 
+## Deployment
+
+To put this online for family use (Vercel + Neon, free), follow
+**[DEPLOYMENT.md](DEPLOYMENT.md)**. The app is already configured for it:
+`postinstall` generates the Prisma client, migrations can use a direct DB URL
+(`DIRECT_DATABASE_URL`), and public sign-ups can be gated with a shared
+`SIGNUP_CODE` invite code.
+
 ## Security notes
 
 - Passwords are hashed with bcrypt; only the hash is stored.
