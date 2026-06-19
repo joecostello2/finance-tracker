@@ -11,6 +11,7 @@ syncing (Plaid) later — no rewrite required.
 - **Accounts** — checking, savings, investment, retirement, cash, and credit cards.
 - **Loans & debts** — mortgage, auto, student, personal, with APR, minimum payment, term, and a payoff-progress bar.
 - **Income** — log every paycheck with amount, source, date, and frequency; see estimated monthly income.
+- **Expenses** — log spending, **auto-categorized** from the merchant/description, with a category breakdown (donut + ranked % share), period comparison (this month / last month / 30 / 90 days / year), and plain-language **insights** about where your money goes and what to cut.
 - **Bills** — recurring obligations (rent, utilities, subscriptions) with amount, frequency, next due date, and autopay.
 - **Savings goals** — targets with progress, priority order, an emergency-fund flag, and a "contribute" action.
 - **Paycheck allocation planner** (`/plan`) — the suggestion engine. Enter a paycheck and it produces a transparent **priority waterfall**: cover bills due before your next paycheck → fund the emergency fund → fund savings goals (priority order) → extra debt paydown (**avalanche**, highest-APR loan first) → discretionary. Every line explains *why*, and you can apply the plan to fund your goals in one click.
@@ -94,6 +95,7 @@ app/
     accounts/      # accounts list, add/edit/delete + server actions
     loans/         # loans list, add/edit/delete + server actions
     income/        # paycheck log + server actions
+    expenses/      # spending log, auto-categorization, breakdown + insights
     bills/         # recurring bills + server actions
     goals/         # savings goals + contribute + server actions
     plan/          # paycheck allocation planner (runs the engine)
@@ -103,6 +105,8 @@ lib/
   prisma.ts        # PrismaClient singleton (pg adapter)
   queries.ts       # user-scoped read queries + net-worth & cash-flow math
   allocation.ts    # the paycheck allocation engine (pure function)
+  categorize.ts    # keyword-based expense auto-categorization engine
+  period.ts        # time-period resolver for spending analytics
   money.ts         # currency formatting & helpers
   session.ts       # requireUser() guard
 auth.ts            # Auth.js config (Node runtime, credentials provider)

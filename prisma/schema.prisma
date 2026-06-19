@@ -127,14 +127,17 @@ enum TransactionType {
 }
 
 model Transaction {
-  id        String  @id @default(cuid())
-  userId    String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  accountId String
-  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Optional: which account the money moved through. Deleting an account keeps
+  // the transaction (spending history) but clears the link.
+  accountId String?
+  account   Account? @relation(fields: [accountId], references: [id], onDelete: SetNull)
 
   description String
-  // Signed amount: negative for expenses, positive for income.
+  // Positive magnitude of the transaction; `type` says whether it's an expense,
+  // income, or transfer. (e.g. a $42.50 dinner is amount=42.50, type=EXPENSE.)
   amount      Decimal         @db.Decimal(14, 2)
   type        TransactionType @default(EXPENSE)
   date        DateTime        @default(now())

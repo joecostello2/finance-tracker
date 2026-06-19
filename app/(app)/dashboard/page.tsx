@@ -5,6 +5,7 @@ import {
   getNetWorthHistory,
   getAssetAllocation,
   getCashFlowSummary,
+  getSpendingBreakdown,
 } from "@/lib/queries";
 import { formatMoney } from "@/lib/money";
 import NetWorthChart from "./NetWorthChart";
@@ -14,11 +15,12 @@ const CURRENCY = "USD";
 
 export default async function DashboardPage() {
   const user = await requireUser();
-  const [summary, history, allocation, cashFlow] = await Promise.all([
+  const [summary, history, allocation, cashFlow, spending] = await Promise.all([
     getNetWorthSummary(user.id),
     getNetWorthHistory(user.id),
     getAssetAllocation(user.id),
     getCashFlowSummary(user.id),
+    getSpendingBreakdown(user.id, "this-month"),
   ]);
 
   const hasCashFlow = cashFlow.monthlyIncome > 0 || cashFlow.monthlyBills > 0 || cashFlow.monthlyLoanMinimums > 0;
@@ -77,6 +79,33 @@ export default async function DashboardPage() {
               <p className="mt-3 text-xs text-slate-400">
                 Estimated recurring monthly figures. &ldquo;Leftover&rdquo; is what&apos;s free for savings, debt, and spending.
               </p>
+            </div>
+          )}
+
+          {spending.total > 0 && (
+            <div className="card p-5">
+              <div className="mb-4 flex items-center justify-between">
+                <h2 className="font-semibold">Top spending this month</h2>
+                <Link href="/expenses" className="text-sm font-medium text-[--color-brand] hover:underline">
+                  View expenses →
+                </Link>
+              </div>
+              <p className="mb-3 text-sm text-slate-500">
+                {formatMoney(spending.total, CURRENCY)} spent across {spending.txnCount} expenses
+              </p>
+              <ul className="space-y-2">
+                {spending.topCategories.map((c) => (
+                  <li key={c.category} className="flex items-center gap-3 text-sm">
+                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: c.color }} />
+                    <span className="w-28 shrink-0 truncate">{c.category}</span>
+                    <span className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-100">
+                      <span className="block h-full rounded-full" style={{ width: `${c.pct}%`, background: c.color }} />
+                    </span>
+                    <span className="w-10 shrink-0 text-right text-xs text-slate-400">{c.pct}%</span>
+                    <span className="w-20 shrink-0 text-right tabular-nums font-medium">{formatMoney(c.amount, CURRENCY)}</span>
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 

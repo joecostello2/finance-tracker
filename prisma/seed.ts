@@ -2,6 +2,7 @@ import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../app/generated/prisma/client";
+import { DEFAULT_CATEGORIES, suggestCategory } from "../lib/categorize";
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
@@ -128,6 +129,46 @@ async function main() {
       { userId: user.id, name: "New car fund", targetAmount: 20000, currentAmount: 2500, monthlyTarget: 300, priority: 2 },
     ],
   });
+
+  // --- Spending categories + expenses (this month and last month) ---
+  const categoryRows = await Promise.all(
+    DEFAULT_CATEGORIES.map((c) => prisma.category.create({ data: { userId: user.id, name: c.name, color: c.color } })),
+  );
+  const catId = new Map(categoryRows.map((c) => [c.name, c.id]));
+
+  const expenseRows = (monthOffset: number, items: [string, number, number][]) =>
+    items.map(([description, amount, day]) => {
+      const date = new Date(now.getFullYear(), now.getMonth() + monthOffset, day);
+      const name = suggestCategory(description);
+      return {
+        userId: user.id,
+        description,
+        amount,
+        type: "EXPENSE" as const,
+        date,
+        categoryId: catId.get(name) ?? catId.get("Other")!,
+      };
+    });
+
+  const thisMonth = expenseRows(0, [
+    ["Whole Foods", 142.3, 3], ["Trader Joe's", 88.12, 11], ["Safeway groceries", 64.5, 19],
+    ["Starbucks", 6.75, 2], ["Starbucks", 7.25, 9], ["Chipotle", 13.4, 5], ["DoorDash dinner", 38.9, 14],
+    ["Sushi restaurant", 72.0, 21], ["Pizza night", 24.0, 26],
+    ["Shell gas", 52.1, 4], ["Uber ride", 18.3, 12], ["Parking garage", 12.0, 18],
+    ["Amazon order", 64.99, 7], ["Target", 43.2, 15], ["Best Buy headphones", 129.0, 22],
+    ["AMC movie tickets", 32.0, 16], ["Steam game", 19.99, 24],
+    ["Netflix", 15.49, 1], ["Spotify", 11.99, 1],
+    ["CVS pharmacy", 24.3, 8], ["Planet Fitness", 25.0, 2], ["Haircut", 35.0, 20],
+  ]);
+  const lastMonth = expenseRows(-1, [
+    ["Whole Foods", 138.0, 4], ["Kroger groceries", 72.4, 18],
+    ["Starbucks", 6.75, 6], ["Chipotle", 12.9, 13], ["Olive Garden restaurant", 45.0, 20],
+    ["Shell gas", 49.8, 5], ["Lyft ride", 22.1, 16],
+    ["Amazon order", 89.99, 8], ["Target", 61.5, 12], ["Macy's clothing", 154.0, 22], ["Best Buy cable", 35.0, 25],
+    ["Netflix", 15.49, 1], ["Spotify", 11.99, 1],
+    ["CVS pharmacy", 31.2, 10], ["Planet Fitness", 25.0, 2],
+  ]);
+  await prisma.transaction.createMany({ data: [...thisMonth, ...lastMonth] });
 
   console.log(`\nSeeded demo data.`);
   console.log(`  Login:    ${DEMO_EMAIL}`);

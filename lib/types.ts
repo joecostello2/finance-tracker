@@ -122,3 +122,35 @@ export type AllocationPlan = {
   shortfall: number; // > 0 when bills exceed the paycheck
   notes: string[];
 };
+
+// --- Expenses & spending analytics ---
+
+export type ExpenseDTO = {
+  id: string;
+  description: string;
+  amount: number;
+  date: string; // YYYY-MM-DD
+  category: string | null;
+  categoryColor: string | null;
+  accountName: string | null;
+};
+
+export type CategorySpend = {
+  category: string;
+  color: string;
+  amount: number;
+  pct: number; // share of this period's total (0..100)
+  count: number;
+  prevAmount: number;
+  deltaPct: number | null; // % change vs previous period; null if no prior spend
+};
+
+export type SpendingBreakdown = {
+  label: string;
+  total: number;
+  prevTotal: number;
+  txnCount: number;
+  byCategory: CategorySpend[];
+  topCategories: CategorySpend[];
+  insights: string[];
+};

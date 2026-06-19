@@ -1,5 +1,7 @@
 import { prisma } from "./prisma";
 import { toNumber, LIABILITY_ACCOUNT_TYPES } from "./money";
+import { resolvePeriod } from "./period";
+import { categoryColor } from "./categorize";
 import type {
   AccountDTO,
   LoanDTO,
@@ -10,7 +12,13 @@ import type {
   BillDTO,
   GoalDTO,
   LoanForAllocation,
+  ExpenseDTO,
+  CategorySpend,
+  SpendingBreakdown,
 } from "./types";
+
+// Categories that are hard to cut quickly; excluded from "what to trim" hints.
+const FIXED_CATEGORIES = new Set(["Housing", "Utilities", "Insurance"]);
 
 const ymd = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -322,4 +330,133 @@ export async function getCashFlowSummary(userId: string): Promise<CashFlowSummar
     monthlyLoanMinimums: round2(monthlyLoanMinimums),
     leftover: round2(monthlyIncome - monthlyBills - monthlyLoanMinimums),
   };
+}
+
+// ---------------------------------------------------------------------------
+// Expenses & spending analytics
+// ---------------------------------------------------------------------------
+
+export async function getExpenses(userId: string, periodKey: string): Promise<ExpenseDTO[]> {
+  const { start, end } = resolvePeriod(periodKey);
+  const rows = await prisma.transaction.findMany({
+    where: { userId, type: "EXPENSE", date: { gte: start, lt: end } },
+    orderBy: { date: "desc" },
+    include: { category: true, account: true },
+  });
+  return rows.map((t) => ({
+    id: t.id,
+    description: t.description,
+    amount: toNumber(t.amount),
+    date: ymd(t.date),
+    category: t.category?.name ?? null,
+    categoryColor: t.category?.color ?? null,
+    accountName: t.account?.name ?? null,
+  }));
+}
+
+/**
+ * Group this period's expenses by category, with each category's share of the
+ * total, transaction count, and change vs. the previous comparable period. Also
+ * produces plain-language insights about where money is going and what to trim.
+ */
+export async function getSpendingBreakdown(userId: string, periodKey: string): Promise<SpendingBreakdown> {
+  const { label, start, end, prevStart, prevEnd } = resolvePeriod(periodKey);
+
+  const rows = await prisma.transaction.findMany({
+    where: { userId, type: "EXPENSE", date: { gte: prevStart, lt: end } },
+    select: { amount: true, date: true, category: { select: { name: true, color: true } } },
+  });
+
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+  const cur = new Map<string, { amount: number; count: number; color: string }>();
+  const prev = new Map<string, number>();
+  let total = 0;
+  let prevTotal = 0;
+  let txnCount = 0;
+
+  for (const r of rows) {
+    const amt = toNumber(r.amount);
+    const name = r.category?.name ?? "Uncategorized";
+    const color = r.category?.color ?? categoryColor(name);
+    const inCurrent = r.date >= start && r.date < end;
+    if (inCurrent) {
+      const e = cur.get(name) ?? { amount: 0, count: 0, color };
+      e.amount += amt;
+      e.count += 1;
+      cur.set(name, e);
+      total += amt;
+      txnCount += 1;
+    } else if (r.date >= prevStart && r.date < prevEnd) {
+      prev.set(name, (prev.get(name) ?? 0) + amt);
+      prevTotal += amt;
+    }
+  }
+
+  const byCategory: CategorySpend[] = [...cur.entries()]
+    .map(([category, e]) => {
+      const prevAmount = round2(prev.get(category) ?? 0);
+      const amount = round2(e.amount);
+      const deltaPct = prevAmount > 0 ? round2(((amount - prevAmount) / prevAmount) * 100) : null;
+      return {
+        category,
+        color: e.color,
+        amount,
+        count: e.count,
+        pct: total > 0 ? round2((amount / total) * 100) : 0,
+        prevAmount,
+        deltaPct,
+      };
+    })
+    .sort((a, b) => b.amount - a.amount);
+
+  const topCategories = byCategory.slice(0, 3);
+  total = round2(total);
+  prevTotal = round2(prevTotal);
+
+  // --- Insights ---
+  const insights: string[] = [];
+  if (total === 0) {
+    insights.push("No expenses logged for this period yet.");
+  } else {
+    const top = byCategory[0];
+    insights.push(`${top.category} is your largest expense — ${fmtUsd(top.amount)} (${top.pct}% of spending).`);
+
+    if (topCategories.length >= 2) {
+      const topShare = round2(topCategories.reduce((s, c) => s + c.pct, 0));
+      insights.push(
+        `Your top ${topCategories.length} categories (${topCategories.map((c) => c.category).join(", ")}) make up ${topShare}% of spending.`,
+      );
+    }
+
+    if (prevTotal > 0) {
+      const delta = round2(((total - prevTotal) / prevTotal) * 100);
+      const dir = delta > 0 ? "up" : "down";
+      insights.push(`Total spending is ${dir} ${Math.abs(delta)}% vs. the previous period (${fmtUsd(prevTotal)}).`);
+    }
+
+    // What to cut: biggest non-fixed category.
+    const cut = byCategory.find((c) => !FIXED_CATEGORIES.has(c.category));
+    if (cut) {
+      insights.push(`To cut back, start with ${cut.category} — ${fmtUsd(cut.amount)} this period.`);
+    }
+
+    // Fastest-rising category (meaningful size + biggest positive change).
+    const rising = byCategory
+      .filter((c) => c.deltaPct !== null && c.deltaPct > 15 && c.amount >= 25)
+      .sort((a, b) => (b.deltaPct ?? 0) - (a.deltaPct ?? 0))[0];
+    if (rising) {
+      insights.push(`${rising.category} spending jumped ${rising.deltaPct}% vs. last period — worth a look.`);
+    }
+  }
+
+  return { label, total, prevTotal, txnCount, byCategory, topCategories, insights };
+}
+
+function fmtUsd(n: number): string {
+  return new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" }).format(n);
+}
+
+export async function getCategories(userId: string): Promise<{ name: string; color: string | null }[]> {
+  const rows = await prisma.category.findMany({ where: { userId }, orderBy: { name: "asc" } });
+  return rows.map((c) => ({ name: c.name, color: c.color }));
 }
