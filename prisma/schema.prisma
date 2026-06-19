@@ -1,0 +1,285 @@
+// Finance Tracker — Prisma schema
+// Designed for manual entry now, but "sync-ready": every financial record carries
+// a `source` and nullable external-link fields so a Plaid/bank-sync layer can be
+// added later without migrating away from this model.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------------------------------------------------------------------------
+// Auth & users
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String?
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  accounts     Account[]
+  loans        Loan[]
+  transactions Transaction[]
+  categories   Category[]
+  paychecks    Paycheck[]
+  bills        Bill[]
+  savingsGoals SavingsGoal[]
+
+  // Sync-ready: a Plaid "item" represents one linked institution login.
+  // Unused for manual entry; here so we don't migrate the model later.
+  plaidItems PlaidItem[]
+}
+
+// ---------------------------------------------------------------------------
+// Financial data
+// ---------------------------------------------------------------------------
+
+enum DataSource {
+  MANUAL
+  PLAID
+}
+
+enum AccountType {
+  CHECKING
+  SAVINGS
+  CREDIT_CARD
+  INVESTMENT
+  RETIREMENT
+  CASH
+  OTHER
+}
+
+model Account {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name        String
+  institution String?
+  type        AccountType @default(CHECKING)
+  // Current balance, stored as Decimal to avoid floating-point money errors.
+  // For CREDIT_CARD a positive balance represents money owed (a liability).
+  balance     Decimal     @default(0) @db.Decimal(14, 2)
+  currency    String      @default("USD")
+
+  source      DataSource @default(MANUAL)
+  externalId  String? // Plaid account_id when synced
+  plaidItem   PlaidItem? @relation(fields: [plaidItemId], references: [id], onDelete: SetNull)
+  plaidItemId String?
+
+  transactions     Transaction[]
+  balanceSnapshots BalanceSnapshot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum LoanType {
+  MORTGAGE
+  AUTO
+  STUDENT
+  PERSONAL
+  CREDIT_LINE
+  OTHER
+}
+
+model Loan {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name           String
+  lender         String?
+  type           LoanType  @default(PERSONAL)
+  originalAmount Decimal   @db.Decimal(14, 2)
+  currentBalance Decimal   @db.Decimal(14, 2)
+  interestRate   Decimal?  @db.Decimal(6, 3) // annual percentage rate, e.g. 6.250
+  minimumPayment Decimal?  @db.Decimal(14, 2)
+  currency       String    @default("USD")
+  startDate      DateTime?
+  // Optional original term in months, used to estimate a payoff date.
+  termMonths     Int?
+
+  source     DataSource @default(MANUAL)
+  externalId String?
+
+  balanceSnapshots BalanceSnapshot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+}
+
+model Transaction {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accountId String
+  account   Account @relation(fields: [accountId], references: [id], onDelete: Cascade)
+
+  description String
+  // Signed amount: negative for expenses, positive for income.
+  amount      Decimal         @db.Decimal(14, 2)
+  type        TransactionType @default(EXPENSE)
+  date        DateTime        @default(now())
+
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+
+  source     DataSource @default(MANUAL)
+  externalId String? // Plaid transaction_id when synced
+  pending    Boolean    @default(false)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([accountId])
+  @@index([date])
+}
+
+model Category {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name  String
+  color String? // hex color for charts
+
+  transactions Transaction[]
+
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+// Point-in-time balance history for net-worth-over-time charts. One row per
+// account/loan per snapshot; populated on edits now, can be populated from
+// sync data later.
+model BalanceSnapshot {
+  id      String   @id @default(cuid())
+  date    DateTime @default(now())
+  balance Decimal  @db.Decimal(14, 2)
+
+  accountId String?
+  account   Account? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  loanId    String?
+  loan      Loan?    @relation(fields: [loanId], references: [id], onDelete: Cascade)
+
+  @@index([accountId])
+  @@index([loanId])
+  @@index([date])
+}
+
+// ---------------------------------------------------------------------------
+// Sync scaffolding (unused in manual-entry v1, present so the model is stable)
+// ---------------------------------------------------------------------------
+
+model PlaidItem {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // In a real sync setup these would be encrypted at rest.
+  accessToken String?
+  itemId      String?  @unique
+  institution String?
+  createdAt   DateTime @default(now())
+
+  accounts Account[]
+
+  @@index([userId])
+}
+
+// ---------------------------------------------------------------------------
+// Cash flow & allocation: paychecks, bills, savings goals
+// ---------------------------------------------------------------------------
+
+enum PayFrequency {
+  WEEKLY
+  BIWEEKLY
+  SEMIMONTHLY
+  MONTHLY
+  ONE_TIME
+}
+
+// A single paycheck the user received (or expects). `frequency` lets us derive
+// the next pay date and the allocation window for the suggestion engine.
+model Paycheck {
+  id        String       @id @default(cuid())
+  userId    String
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source    String? // employer / income source
+  amount    Decimal      @db.Decimal(14, 2) // net take-home
+  date      DateTime
+  frequency PayFrequency @default(BIWEEKLY)
+  notes     String?
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([date])
+}
+
+enum BillFrequency {
+  WEEKLY
+  BIWEEKLY
+  SEMIMONTHLY
+  MONTHLY
+  QUARTERLY
+  ANNUAL
+  ONE_TIME
+}
+
+// A recurring obligation. `nextDueDate` + `frequency` lets the engine project
+// which occurrences fall inside a given pay period.
+model Bill {
+  id          String        @id @default(cuid())
+  userId      String
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  amount      Decimal       @db.Decimal(14, 2)
+  frequency   BillFrequency @default(MONTHLY)
+  nextDueDate DateTime
+  category    String?
+  autopay     Boolean       @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// A named savings target the allocation engine funds after bills. Lower
+// `priority` value = funded earlier. One goal may be flagged as the emergency
+// fund, which the waterfall fills before other goals.
+model SavingsGoal {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  targetAmount    Decimal   @db.Decimal(14, 2)
+  currentAmount   Decimal   @default(0) @db.Decimal(14, 2)
+  monthlyTarget   Decimal?  @db.Decimal(14, 2) // desired monthly contribution
+  priority        Int       @default(0)
+  isEmergencyFund Boolean   @default(false)
+  deadline        DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
