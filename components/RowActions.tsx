@@ -14,9 +14,9 @@ export function RowActions({
 }) {
   const [busy, setBusy] = useState(false);
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       <button
-        className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
+        className="rounded-md border border-[--color-border] bg-white p-1.5 text-slate-500 transition-colors hover:bg-slate-50 hover:text-slate-800"
         onClick={onEdit}
         aria-label="Edit"
       >
@@ -26,7 +26,7 @@ export function RowActions({
         </svg>
       </button>
       <button
-        className="rounded-md p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
+        className="rounded-md border border-[--color-border] bg-white p-1.5 text-slate-500 transition-colors hover:border-red-200 hover:bg-red-50 hover:text-red-600 disabled:opacity-50"
         disabled={busy}
         aria-label="Delete"
         onClick={async () => {
