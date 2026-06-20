@@ -25,22 +25,22 @@ body {
    button variant repeats the shared base utilities. */
 @layer components {
   .card {
-    @apply rounded-xl border border-[--color-border] bg-[--color-surface] shadow-sm;
+    @apply rounded-xl border border-border bg-surface shadow-sm;
   }
   .btn {
     @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:pointer-events-none disabled:opacity-50;
   }
   .btn-primary {
-    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-[--color-brand] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-brand px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-indigo-700 disabled:pointer-events-none disabled:opacity-50;
   }
   .btn-ghost {
-    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-[--color-border] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-border bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:pointer-events-none disabled:opacity-50;
   }
   .btn-danger {
     @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 transition-colors hover:bg-red-50 disabled:pointer-events-none disabled:opacity-50;
   }
   .input {
-    @apply w-full rounded-lg border border-[--color-border] bg-white px-3 py-2 text-sm outline-none focus:border-[--color-brand] focus:ring-2 focus:ring-indigo-100;
+    @apply w-full rounded-lg border border-border bg-white px-3 py-2 text-sm outline-none focus:border-brand focus:ring-2 focus:ring-indigo-100;
   }
   .label {
     @apply mb-1 block text-sm font-medium text-slate-700;

@@ -19,9 +19,9 @@ export default function Sidebar({ userName, userEmail }: { userName: string; use
   const pathname = usePathname();
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-[--color-border] bg-white">
+    <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-white">
       <div className="flex items-center gap-2 px-5 py-5">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[--color-brand] text-sm font-bold text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand text-sm font-bold text-white">
           $
         </div>
         <span className="text-base font-semibold tracking-tight">Finance Tracker</span>
@@ -36,7 +36,7 @@ export default function Sidebar({ userName, userEmail }: { userName: string; use
               href={href}
               className={`flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                 active
-                  ? "bg-indigo-50 text-[--color-brand]"
+                  ? "bg-indigo-50 text-brand"
                   : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
               }`}
             >
@@ -47,7 +47,7 @@ export default function Sidebar({ userName, userEmail }: { userName: string; use
         })}
       </nav>
 
-      <div className="border-t border-[--color-border] p-3">
+      <div className="border-t border-border p-3">
         <div className="mb-2 px-2">
           <p className="truncate text-sm font-medium text-slate-800">{userName}</p>
           <p className="truncate text-xs text-slate-400">{userEmail}</p>

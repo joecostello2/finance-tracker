@@ -53,7 +53,7 @@ export default function IncomeManager({ paychecks }: { paychecks: PaycheckDTO[] 
       {monthlyEstimate > 0 && (
         <div className="card mb-6 p-5">
           <p className="text-sm text-slate-500">Estimated monthly income</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-[--color-positive]">
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-positive">
             {formatMoney(monthlyEstimate)}
           </p>
           <p className="text-xs text-slate-400">Based on the latest paycheck from each source.</p>
@@ -66,7 +66,7 @@ export default function IncomeManager({ paychecks }: { paychecks: PaycheckDTO[] 
           <button className="btn-primary" onClick={() => setCreating(true)}>+ Add your first paycheck</button>
         </div>
       ) : (
-        <div className="card divide-y divide-[--color-border]">
+        <div className="card divide-y divide-border">
           {paychecks.map((p) => (
             <div key={p.id} className="flex items-center justify-between gap-4 px-5 py-4">
               <div className="min-w-0">
@@ -77,7 +77,7 @@ export default function IncomeManager({ paychecks }: { paychecks: PaycheckDTO[] 
                 </p>
               </div>
               <div className="flex items-center gap-2">
-                <span className="tabular-nums font-semibold text-[--color-positive]">+{formatMoney(p.amount)}</span>
+                <span className="tabular-nums font-semibold text-positive">+{formatMoney(p.amount)}</span>
                 <RowActions
                   onEdit={() => setEditing(p)}
                   onDelete={async () => {

@@ -176,7 +176,7 @@ export default function PlanBuilder({
           <div className="space-y-4">
             {grouped.map((g) => (
               <div key={g.cat} className="card overflow-hidden">
-                <div className="flex items-center justify-between border-b border-[--color-border] bg-slate-50/60 px-5 py-3">
+                <div className="flex items-center justify-between border-b border-border bg-slate-50/60 px-5 py-3">
                   <div className="flex items-center gap-2">
                     <span className="h-2.5 w-2.5 rounded-full" style={{ background: CATEGORY_META[g.cat].color }} />
                     <span className="font-medium">{CATEGORY_META[g.cat].label}</span>
@@ -184,7 +184,7 @@ export default function PlanBuilder({
                   </div>
                   <span className="tabular-nums font-semibold">{formatMoney(g.total)}</span>
                 </div>
-                <ul className="divide-y divide-[--color-border]">
+                <ul className="divide-y divide-border">
                   {g.items.map((item, idx) => (
                     <li key={idx} className="flex items-start justify-between gap-4 px-5 py-3">
                       <div className="min-w-0">
@@ -206,7 +206,7 @@ export default function PlanBuilder({
               Also log this paycheck to my income
             </label>
             <div className="flex items-center gap-3">
-              {applied && <span className="text-sm text-[--color-positive]">{applied}</span>}
+              {applied && <span className="text-sm text-positive">{applied}</span>}
               <button className="btn-primary" onClick={onApply} disabled={pending}>
                 {pending ? "Applying…" : "Apply plan"}
               </button>

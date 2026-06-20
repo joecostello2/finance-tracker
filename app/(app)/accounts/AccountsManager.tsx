@@ -47,7 +47,7 @@ export default function AccountsManager({ accounts }: { accounts: AccountDTO[] }
       {accounts.length === 0 ? (
         <EmptyState onAdd={() => setCreating(true)} />
       ) : (
-        <div className="card divide-y divide-[--color-border]">
+        <div className="card divide-y divide-border">
           {accounts.map((a) => {
             const isLiability = LIABILITY.has(a.type);
             return (
@@ -62,7 +62,7 @@ export default function AccountsManager({ accounts }: { accounts: AccountDTO[] }
                 <div className="flex items-center gap-3">
                   <span
                     className={`tabular-nums font-semibold ${
-                      isLiability ? "text-[--color-negative]" : "text-slate-900"
+                      isLiability ? "text-negative" : "text-slate-900"
                     }`}
                   >
                     {isLiability ? "−" : ""}

@@ -27,7 +27,7 @@ export default function AuthForm({ mode, action, requireCode = false }: Props) {
   return (
     <div className="w-full max-w-sm">
       <div className="mb-8 text-center">
-        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-[--color-brand] text-lg font-bold text-white">
+        <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-brand text-lg font-bold text-white">
           $
         </div>
         <h1 className="text-2xl font-semibold tracking-tight">
@@ -87,12 +87,12 @@ export default function AuthForm({ mode, action, requireCode = false }: Props) {
         {isRegister ? (
           <>
             Already have an account?{" "}
-            <Link href="/login" className="font-medium text-[--color-brand] hover:underline">Sign in</Link>
+            <Link href="/login" className="font-medium text-brand hover:underline">Sign in</Link>
           </>
         ) : (
           <>
             Don&apos;t have an account?{" "}
-            <Link href="/register" className="font-medium text-[--color-brand] hover:underline">Create one</Link>
+            <Link href="/register" className="font-medium text-brand hover:underline">Create one</Link>
           </>
         )}
       </p>

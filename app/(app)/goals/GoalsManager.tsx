@@ -70,7 +70,7 @@ export default function GoalsManager({ goals }: { goals: GoalDTO[] }) {
 
                 <div className="mt-2">
                   <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div className={`h-full rounded-full ${done ? "bg-[--color-positive]" : "bg-[--color-brand]"}`} style={{ width: `${pct * 100}%` }} />
+                    <div className={`h-full rounded-full ${done ? "bg-positive" : "bg-brand"}`} style={{ width: `${pct * 100}%` }} />
                   </div>
                   <p className="mt-1 text-xs text-slate-500">{Math.round(pct * 100)}% funded{done ? " 🎉" : ""}</p>
                 </div>

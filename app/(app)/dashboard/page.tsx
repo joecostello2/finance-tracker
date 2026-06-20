@@ -51,29 +51,29 @@ export default async function DashboardPage() {
             <StatCard
               label="Net worth"
               value={formatMoney(summary.netWorth, CURRENCY)}
-              accent={summary.netWorth >= 0 ? "text-slate-900" : "text-[--color-negative]"}
+              accent={summary.netWorth >= 0 ? "text-slate-900" : "text-negative"}
               big
             />
-            <StatCard label="Assets" value={formatMoney(summary.assets, CURRENCY)} accent="text-[--color-positive]" />
-            <StatCard label="Liabilities" value={formatMoney(summary.liabilities, CURRENCY)} accent="text-[--color-negative]" />
+            <StatCard label="Assets" value={formatMoney(summary.assets, CURRENCY)} accent="text-positive" />
+            <StatCard label="Liabilities" value={formatMoney(summary.liabilities, CURRENCY)} accent="text-negative" />
           </div>
 
           {hasCashFlow && (
             <div className="card p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-semibold">Monthly cash flow</h2>
-                <Link href="/plan" className="text-sm font-medium text-[--color-brand] hover:underline">
+                <Link href="/plan" className="text-sm font-medium text-brand hover:underline">
                   Plan a paycheck →
                 </Link>
               </div>
               <div className="grid gap-4 sm:grid-cols-4">
-                <CashStat label="Income" value={formatMoney(cashFlow.monthlyIncome, CURRENCY)} accent="text-[--color-positive]" />
+                <CashStat label="Income" value={formatMoney(cashFlow.monthlyIncome, CURRENCY)} accent="text-positive" />
                 <CashStat label="Bills" value={formatMoney(cashFlow.monthlyBills, CURRENCY)} accent="text-slate-900" />
                 <CashStat label="Loan minimums" value={formatMoney(cashFlow.monthlyLoanMinimums, CURRENCY)} accent="text-slate-900" />
                 <CashStat
                   label="Leftover"
                   value={formatMoney(cashFlow.leftover, CURRENCY)}
-                  accent={cashFlow.leftover >= 0 ? "text-[--color-positive]" : "text-[--color-negative]"}
+                  accent={cashFlow.leftover >= 0 ? "text-positive" : "text-negative"}
                 />
               </div>
               <p className="mt-3 text-xs text-slate-400">
@@ -86,7 +86,7 @@ export default async function DashboardPage() {
             <div className="card p-5">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="font-semibold">Top spending this month</h2>
-                <Link href="/expenses" className="text-sm font-medium text-[--color-brand] hover:underline">
+                <Link href="/expenses" className="text-sm font-medium text-brand hover:underline">
                   View expenses →
                 </Link>
               </div>

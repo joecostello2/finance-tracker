@@ -55,13 +55,13 @@ export default function ExpensesManager({ breakdown, expenses, categories, perio
       </div>
 
       {/* Period selector */}
-      <div className="flex flex-wrap gap-1 rounded-lg border border-[--color-border] bg-white p-1 text-sm">
+      <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-white p-1 text-sm">
         {PERIOD_OPTIONS.map((p) => (
           <button
             key={p.value}
             onClick={() => router.push(`/expenses?period=${p.value}`)}
             className={`rounded-md px-3 py-1.5 font-medium transition-colors ${
-              periodKey === p.value ? "bg-[--color-brand] text-white" : "text-slate-600 hover:bg-slate-50"
+              periodKey === p.value ? "bg-brand text-white" : "text-slate-600 hover:bg-slate-50"
             }`}
           >
             {p.label}
@@ -116,7 +116,7 @@ export default function ExpensesManager({ breakdown, expenses, categories, perio
               <ul className="space-y-1.5 text-sm text-slate-600">
                 {breakdown.insights.map((t, i) => (
                   <li key={i} className="flex gap-2">
-                    <span className="text-[--color-brand]">•</span>
+                    <span className="text-brand">•</span>
                     <span>{t}</span>
                   </li>
                 ))}
@@ -132,7 +132,7 @@ export default function ExpensesManager({ breakdown, expenses, categories, perio
         {expenses.length === 0 ? (
           <div className="card px-5 py-8 text-center text-sm text-slate-400">No expenses in this period.</div>
         ) : (
-          <div className="card divide-y divide-[--color-border]">
+          <div className="card divide-y divide-border">
             {expenses.map((e) => (
               <div key={e.id} className="flex items-center justify-between gap-4 px-5 py-3">
                 <div className="min-w-0">

@@ -70,14 +70,14 @@ export default function LoansManager({ loans }: { loans: LoanDTO[] }) {
                   </div>
                 </div>
 
-                <p className="mt-3 text-2xl font-semibold tabular-nums text-[--color-negative]">
+                <p className="mt-3 text-2xl font-semibold tabular-nums text-negative">
                   {formatMoney(l.currentBalance, l.currency)}
                 </p>
                 <p className="text-xs text-slate-400">remaining of {formatMoney(l.originalAmount, l.currency)}</p>
 
                 <div className="mt-3">
                   <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full rounded-full bg-[--color-positive]" style={{ width: `${paid * 100}%` }} />
+                    <div className="h-full rounded-full bg-positive" style={{ width: `${paid * 100}%` }} />
                   </div>
                   <p className="mt-1 text-xs text-slate-500">{Math.round(paid * 100)}% paid off</p>
                 </div>

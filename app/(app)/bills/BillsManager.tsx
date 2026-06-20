@@ -48,7 +48,7 @@ export default function BillsManager({ bills }: { bills: BillDTO[] }) {
       {monthlyTotal > 0 && (
         <div className="card mb-6 p-5">
           <p className="text-sm text-slate-500">Estimated monthly bills</p>
-          <p className="mt-1 text-2xl font-semibold tabular-nums text-[--color-negative]">{formatMoney(monthlyTotal)}</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums text-negative">{formatMoney(monthlyTotal)}</p>
           <p className="text-xs text-slate-400">Loan minimum payments are added automatically in the planner.</p>
         </div>
       )}
@@ -59,7 +59,7 @@ export default function BillsManager({ bills }: { bills: BillDTO[] }) {
           <button className="btn-primary" onClick={() => setCreating(true)}>+ Add your first bill</button>
         </div>
       ) : (
-        <div className="card divide-y divide-[--color-border]">
+        <div className="card divide-y divide-border">
           {bills.map((b) => (
             <div key={b.id} className="flex items-center justify-between gap-4 px-5 py-4">
               <div className="min-w-0">

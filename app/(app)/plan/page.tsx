@@ -31,9 +31,9 @@ export default async function PlanPage() {
 
       {!hasInputs && (
         <div className="card p-5 text-sm text-slate-500">
-          Tip: add your <Link href="/bills" className="text-[--color-brand] hover:underline">bills</Link>,{" "}
-          <Link href="/loans" className="text-[--color-brand] hover:underline">loans</Link>, and{" "}
-          <Link href="/goals" className="text-[--color-brand] hover:underline">savings goals</Link> so the planner can
+          Tip: add your <Link href="/bills" className="text-brand hover:underline">bills</Link>,{" "}
+          <Link href="/loans" className="text-brand hover:underline">loans</Link>, and{" "}
+          <Link href="/goals" className="text-brand hover:underline">savings goals</Link> so the planner can
           tailor its suggestions to your situation.
         </div>
       )}
